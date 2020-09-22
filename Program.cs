@@ -1,17 +1,41 @@
 ﻿using System;
 using System.Text;
 using System.Linq;
-//using System IO; if txt file
 
-namespace HangmanTest
+namespace HangmanGame
 {
     /*  Assignment 2, Hangman. Ulf Bengtsson at Lexicon Växjö.
         Basic Console-based word game using C#.
         Thye Hansen, triumfthye@hotmail.com
-        2020-09-20 
+        2020-09-22 
     */
     class Program
     {
+        static void Main(string[] args)
+        {
+            bool runChoise = true;
+            while (runChoise)
+            {
+                Console.Write("Play the Hangman Game? y/n: ");
+                string input = Console.ReadLine();
+                Console.Clear();
+
+                switch (input)
+                {
+                    case "y":
+                        RunHang();
+                        break;
+                    case "n":
+                        Environment.Exit(0);
+                        break;
+                    default:
+                        Console.WriteLine("\nYou can only enter \"y\" or \"n\"!\n");
+                        break;
+                }
+            }
+
+        }//MainChoise
+
         static void RunHang()
         {
             Console.WriteLine("\n--- The Hangman Game ---\n");
@@ -27,70 +51,41 @@ namespace HangmanTest
 
             StringBuilder rightGuesses = new StringBuilder(theWord.Length);
             StringBuilder wrongGuesses = new StringBuilder(theWord.Length);
+            string usedRight = rightGuesses.ToString();
+            string usedWrong = wrongGuesses.ToString();
 
             bool runGame = true;
             int lives = 10;
 
-            string input;
-            char guess;
-
             while (runGame && lives > 0)
             {
-                string usedRight = rightGuesses.ToString();
-                string usedWrong = wrongGuesses.ToString();
-
-                Console.WriteLine("Here are the attempts you have got left: {0}", lives);//Display
-                Console.WriteLine("The wrong attempts goes here to aid you: {0}", wrongGuesses);//Display
+                Console.WriteLine("Here are the attempts you have got left: {0}", lives);
+                Console.WriteLine("The wrong attempts goes here to aid you: {0}", wrongGuesses);
                 Console.Write("\nGuess a letter or the word ");
-                Console.WriteLine(theLines);//Display
+                Console.WriteLine(theLines);
                 Console.Write("Your guess: ");
 
-                input = Console.ReadLine().ToUpper();
+                string input = Console.ReadLine().ToUpper();
                 Console.WriteLine("---------------------------------------");
 
-                if (string.IsNullOrEmpty(input))//Error check
-                {
-                    Console.WriteLine("\nYou DID NOT type anything!\n");
-                    continue;
-                }
+                NullCheck(input, out bool goContinue);
+                if (goContinue) continue;
 
-                guess = input[0];
+                char guess = input[0];
 
-                bool checkForSymbol = false;
-
-                for (int i = 0; i < input.Length; i++)//Error check
-                {
-                    if (input[i] < 65 || input[i] > 90)
-                    {
-                        checkForSymbol = true;
-                    }
-                }
-
-                if (checkForSymbol)//Error check
-                {
-                    Console.WriteLine("\nYou can ONLY use letters!\n");
-                    continue;
-                }
-
-                if (input.Length != 1 && input.Length != theWord.Length)//Error check
-                {
-                    Console.WriteLine("\nYou entered an UNUSABLE number of letters!\n");
-                    continue;
-                }
+                SymbolCheck(input, theWord, out goContinue);
+                if (goContinue) continue;
 
                 if (input.Length == theWord.Length)
                 {
-                    if (input.SequenceEqual(theLetters))
-                    { }//Clumsy but effective
-                    else
+                    if (!input.SequenceEqual(theLetters))
                     {
                         Console.WriteLine("\nYou guessed a WRONG word!\n");
                         lives--;
                         continue;
                     }
                 }
-
-                if (usedRight.Contains(input))
+                else if (usedRight.Contains(input))
                 {
                     Console.WriteLine("\nYou've allready tried \"{0}\", and you guessed RIGHT!\n", guess);
                     continue;
@@ -100,8 +95,7 @@ namespace HangmanTest
                     Console.WriteLine("\nYou've allready tried \"{0}\", and your guess was WRONG!\n", guess);
                     continue;
                 }
-
-                if (theWord.Contains(guess))
+                else if (theWord.Contains(guess))
                 {
                     Console.WriteLine("\nYou guessed RIGHT!\n");
                     rightGuesses.Append(guess);
@@ -128,31 +122,66 @@ namespace HangmanTest
                     {
                         theLines[i] = input[i];
                     }
-                    Console.Write("The word \"");
+                    Console.Write("\nThe word \"");
                     Console.Write(theLines);
-                    Console.WriteLine("\", is the right word. You WON!\n");
+                    Console.WriteLine("\" is the right word. You WON!\n");
                     runGame = false;
                 }
                 else if (theLines.SequenceEqual(theLetters))//Victory
                 {
                     Console.Write("The word \"");
                     Console.Write(theLines);
-                    Console.WriteLine("\", is the right word. You WON!\n");
+                    Console.WriteLine("\" is the right word. You WON!\n");
                     runGame = false;
                 }
                 else if (lives < 1)//Defeat
                 {
                     Console.WriteLine("Too bad you ran out of lives and LOST!\n");
+                    runGame = false;
                 }
+
+            }//While game
+
+        }//RunHag
+
+        static void NullCheck(string input, out bool goContinue)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                Console.WriteLine("\nYou DID NOT type anything!\n");
+                goContinue = true;
+            }
+            else goContinue = false;
+        } //NullCheck
+
+        static void SymbolCheck(string input, string theWord, out bool goContinue)
+        {
+            bool goToContinue = true;
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                if (input[i] < 65 || input[i] > 90)
+                {
+                    Console.WriteLine("\nYou can ONLY use letters!\n");
+                    goToContinue = true;
+                    break;
+                }
+                else if (input.Length != 1 && input.Length != theWord.Length)
+                {
+                    Console.WriteLine("\nYou entered an UNUSABLE number of letters!\n");
+                    goToContinue = true;
+                    break;
+                }
+                else goToContinue = false;
             }
 
-        }
+            if (goToContinue) goContinue = true;
+
+            else goContinue = false;
+        }//SymbolCheck
 
         static string WordChoise()
         {
-            //string path = @"C:\Users\Thye\Documents\wordBank.txt"; ...if txt file
-            //string secretWordsCollection = File.ReadAllText(path); ...if txt file
-
             string secretWordsCollection = ("cargo, grace, greed, vault, emoji, inbox, noise, " +
                                             "exit, camp, jump, swag");
             string[] secretWords = secretWordsCollection.Split(", ");
@@ -163,35 +192,11 @@ namespace HangmanTest
             string theWordToUse = secretWords[index];
             string theWord = theWordToUse.ToUpper();
             return theWord;
-        }
-
-        static void Main(string[] args)
-        {
-            bool runChoise = true;
-            while (runChoise)
-            {
-                Console.Write("Play the Hangman Game? y/n: ");
-                string input = Console.ReadLine();
-                Console.Clear();
-
-                switch (input)
-                {
-                    case "y":
-                        RunHang();
-                        break;
-                    case "n":
-                        runChoise = false;
-                        break;
-                    default:
-                        Console.WriteLine("\nYou can only enter \"y\" or \"n\"!\n");
-                        break;
-                }
-            }
-
-        }
+        }//WordChoise
 
 
-    }
+
+    }//class
 
 
-}
+}//namespace
